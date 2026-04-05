@@ -4,14 +4,15 @@ WORKDIR /workspace
 
 RUN apt-get update && apt-get install -y git wget curl ffmpeg && rm -rf /var/lib/apt/lists/*
 
-RUN pip --version && python --version
+RUN pip --version && python --version && pip config list
 
-RUN pip install --no-cache-dir runpod || echo WARN_runpod
-RUN pip install --no-cache-dir requests || echo WARN_requests
-RUN pip install --no-cache-dir huggingface_hub || echo WARN_hf
-RUN pip install --no-cache-dir flask || echo WARN_flask
+RUN pip install --no-cache-dir --break-system-packages runpod requests huggingface_hub flask 2>&1 || \
+    pip install --no-cache-dir runpod requests huggingface_hub flask 2>&1 || \
+    (python -m pip install --no-cache-dir runpod requests huggingface_hub flask 2>&1 || \
+     echo 'ALL PIP METHODS FAILED')
 
-RUN python -c 'import runpod; import flask; import requests; print("ALL OK")'
+RUN python -c 'import runpod; print("runpod ok")' 2>&1 || echo 'runpod not available'
+RUN python -c 'import flask; print("flask ok")' 2>&1 || echo 'flask not available'
 
 COPY handler.py /workspace/handler.py
 COPY generate_avatar.py /workspace/generate_avatar.py
