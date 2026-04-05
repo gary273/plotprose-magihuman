@@ -11,6 +11,10 @@ RUN apt-get update && apt-get install -y \
     git wget curl ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
+# CRITICAL: Install our core deps FIRST before research repos
+# Research repos may have conflicting requirements that break pip
+RUN pip install --no-cache-dir runpod requests huggingface_hub flask
+
 # Clone MagiHuman stack (may fail if repo is private/unavailable)
 RUN git clone https://github.com/GAIR-NLP/daVinci-MagiHuman.git /workspace/daVinci-MagiHuman || \
     (echo "WARNING: Could not clone daVinci-MagiHuman" && mkdir -p /workspace/daVinci-MagiHuman)
@@ -31,8 +35,8 @@ RUN if [ -f /workspace/MagiCompiler/setup.py ] || [ -f /workspace/MagiCompiler/p
       cd /workspace/MagiCompiler && pip install --no-cache-dir . || true; \
     fi
 
-# RunPod SDK + HTTP server + utilities
-RUN pip install --no-cache-dir runpod requests huggingface_hub flask
+# Re-ensure our critical deps are intact after research repo installs
+RUN pip install --no-cache-dir --force-reinstall runpod flask
 
 # Copy our custom scripts
 COPY handler.py /workspace/handler.py
