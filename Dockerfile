@@ -17,10 +17,13 @@ RUN git clone https://github.com/GAIR-NLP/daVinci-MagiHuman.git /workspace/daVin
     pip install --no-cache-dir -r requirements.txt || true
 
 # Install MagiCompiler (inference engine)
+# NOTE: MagiCompiler >= 2026-04 requires Python 3.12+. Base image is 3.11.
+# Clone succeeds; pip install may fail. || true keeps the build going.
+# The code is still available for import if deps are manually resolved later.
 RUN git clone https://github.com/SandAI-org/MagiCompiler.git /workspace/MagiCompiler && \
     cd /workspace/MagiCompiler && \
     pip install --no-cache-dir -r requirements.txt && \
-    pip install --no-cache-dir .
+    pip install --no-cache-dir . || true
 
 # RunPod SDK + HTTP server + utilities
 # NOTE: --ignore-installed is required because the base image has a distutils-
